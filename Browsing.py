@@ -38,4 +38,3 @@ def openOwnChrome(proxy=None):
 
     return driver
 
-openOwnChrome(proxy = )
