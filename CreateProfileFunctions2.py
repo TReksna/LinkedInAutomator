@@ -22,9 +22,8 @@ from BuildigProfiles.smspva import getNumber, getSms
 from LaunchDebug import openDebugChrome, QuitDebugChrome
 from BuildigProfiles.smspva import getNumber, getSms
 import win32com.client as comclt
-
+#test for git
 from Humanlike import fill_text, pause, scroll_to_elem, mini_pause
-
 def cold_join(driver, email, password, firstname, lastname):
     driver.get("https://www.linkedin.com/signup")
     wait = WebDriverWait(driver, 10)
