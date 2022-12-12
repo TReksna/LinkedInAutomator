@@ -15,7 +15,7 @@ def move_to_small_screen(driver):
         driver.maximize_window()
     return driver
 
-def connect(port, address="linkedin.com", country="AU"):
+def connect(port, address="linkedin.com", country=None, city=None, ip=None):
 
     # with open("Context/usedIPs.txt", "r") as file:
     #     excluded = "-"+",-".join([x.replace("\n", "") for x in file.readlines()])
@@ -24,7 +24,18 @@ def connect(port, address="linkedin.com", country="AU"):
     # -U tomsr;country=LV;proxyIp={}:b85935-85f215-c382d5-e83421-2e4a57 {}'''.format(port, excluded, address)
 
     cmd = f'''curl -x private.residential.proxyrack.net:1000{port}
-        -U maris29;country={country}:5f7e32-fac927-d56375-c4c5d9-baa613 {address}'''
+        -U maris29'''
+    if country:
+        cmd += f";country={country}"
+
+    if city:
+        cmd += f";city={city}"
+
+    if ip:
+        cmd += f";proxyIp={ip}"
+
+
+    cmd += f":5f7e32-fac927-d56375-c4c5d9-baa613 {address}"
 
     print(cmd)
     args = shlex.split(cmd)
@@ -65,28 +76,42 @@ def release(port):
     args = shlex.split(cmd)
     process = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-def manage_connection(port=0, country="CA", city="Wilmington"):
+def manage_connection(port=0, country=None, city=None, ip = None, data_dir=None, return_driver=True):
 
     release(port)
 
-    connect(port, country=country)
+    connect(port, country=country, city=city, ip=ip)
 
     info = session_info(port)
     print(info['ipinfo'])
+
+    tries = 0
+
     while True:
 
 
         if info['ipinfo']['ip']:
 
-            if info['ipinfo']['city'] != 'Springfield' and info['ipinfo']['city'] != "Weehawken":
                 break
 
+        else:
+            tries+=1
+
+
         release(port)
-        connect(port, country=country)
+        if tries < 4:
+            connect(port, country=country, ip=ip)
+        else:
+            if tries > 6:
+                return {'ip':None}
+            connect(port, country=country, city=city)
+        time.sleep(1)
 
         info = session_info(port)
 
-        print(info['ipinfo'])
+    return info['ipinfo']
+
+def start_driver(port, data_dir):
 
     proxy = "private.residential.proxyrack.net:1000{}".format(port)
 
@@ -98,12 +123,13 @@ def manage_connection(port=0, country="CA", city="Wilmington"):
     chrome_options.add_argument('--proxy-server=%s' % proxy)
 
     s = Service("chromedriver.exe")
-    # chrome_options.add_argument("user-data-dir="+r"C:\Users\User\Desktop\SSlvMessenger\Agent_user_directories\agent1")
+    if data_dir:
+        chrome_options.add_argument("user-data-dir="+data_dir)
     driver = webdriver.Chrome(service=s, options=chrome_options, desired_capabilities=caps)
 
     driver = move_to_small_screen(driver)
 
-    return driver, info['ipinfo']
+    return driver
 
 def rotating_usa(address = "ss.lv"):
 

@@ -32,6 +32,8 @@ def try_credentials(driver, email, password):
     t0 = time.time()
     while time.time() - t0 < 10:
 
+        time.sleep(5)
+
         if "Your account has been restricted" in driver.page_source or "Access to your account has been temporarily restricted" in driver.page_source:
             time.sleep(5)
             print("ACCOUNT RESTRICTED!")
@@ -62,13 +64,15 @@ def try_credentials(driver, email, password):
 def innitialise_linkedin(driver, email, password):
 
     t0 = time.time()
-    while True:
-        if time.time() - t0 >12:
-            input("?")
-            return False
+    for i in range(4):
+
+        if i > 2:
+            driver.quit()
+            return "Time too long"
+
         driver.get("https://www.linkedin.com/feed/")
         try:
-            wait = WebDriverWait(driver, 2)
+            wait = WebDriverWait(driver, 10)
             wait.until(ec.visibility_of_element_located((By.CLASS_NAME, 'global-nav__content')))
             return True
         except Exception:
@@ -97,12 +101,19 @@ def innitialise_linkedin(driver, email, password):
                 pass_field.send_keys(password)
             driver.find_element(By.XPATH, "//button[text()[contains(.,'Sign in')]]").click()
             time.sleep(1)
+
+
         except Exception:
             continue
-
+        time.sleep(2)
         if "That's not the right password." in driver.page_source:
             return False
         if "Couldn’t find a LinkedIn account associated with this email." in driver.page_source:
+            return False
+        if "Your account has been restricted" in driver.page_source or "Access to your account has been temporarily restricted" in driver.page_source:
+
+
+            print("ACCOUNT RESTRICTED!")
             return False
         if "Let's do a quick security check" in driver.page_source:
             input("Solve capcha")
